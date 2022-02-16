@@ -2,6 +2,10 @@ import {
   Sequelize,
   SequelizeOptions,
 } from 'sequelize-typescript';
+import {
+  Transaction,
+  LOCK,
+} from 'sequelize/types';
 import { ProjectDao } from './schemas/Project';
 
 const defaultOptions: SequelizeOptions = {
@@ -22,9 +26,12 @@ const defaultOptions: SequelizeOptions = {
 export class Database {
   private sequelize: Sequelize;
 
+  runTransaction;
+
   constructor(dbConnectionString: string) {
     this.sequelize = new Sequelize(dbConnectionString, defaultOptions);
     this.sequelize.addModels([ProjectDao]);
+    this.runTransaction = this.sequelize.transaction.bind(this.sequelize);
   }
 
   async connect(): Promise<void> {
@@ -43,3 +50,6 @@ export class Database {
     });
   }
 }
+
+export type Transactional = Transaction;
+export type LockEnum = LOCK;
