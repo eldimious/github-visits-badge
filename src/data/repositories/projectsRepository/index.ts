@@ -13,15 +13,12 @@ const projectsStore: IProjectsRepository = {
     if (!increaseCounterDto.id && !increaseCounterDto.projectId) {
       throw new Error('Add id or or projectId to update project.');
     }
-    const res = await ProjectDao.update({
-      logDaysCounter: Sequelize.literal('"metrics"."logDaysCounter"+1'),
+    const res = await ProjectDao.upsert({
+      projectId: 1,
+      counter: Sequelize.literal('"projects"."counter"+1'),
     }, {
-      where: {
-        ...(increaseCounterDto.id && { id: increaseCounterDto.id }),
-        ...(increaseCounterDto.projectId && { projectId: increaseCounterDto.projectId }),
-      },
       returning: true,
-      limit: 1,
+      validate: true,
       ...(increaseCounterDto.lock != null && { lock: increaseCounterDto.lock }),
       ...(increaseCounterDto.transaction != null && { transaction: increaseCounterDto.transaction }),
     });

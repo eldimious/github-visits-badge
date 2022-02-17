@@ -1,3 +1,5 @@
+import { Badge } from './model';
+
 export interface IBadgesRepository{
-  getVisitsUrl(badge: number, color: string): string
+  getVisitsUrl(badgeId: string, badge: number, color: string): Badge
 }
