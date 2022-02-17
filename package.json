@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/eldimious/github-visits-badge#readme",
   "dependencies": {
+    "axios": "^0.26.0",
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
     "cors": "^2.8.5",

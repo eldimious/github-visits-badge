@@ -1,38 +1,28 @@
 /* eslint-disable eqeqeq */
-import { Sequelize } from 'sequelize-typescript';
-import { IProjectsRepository, IUpdateProjectWhere } from '../../../domain/projects/IProjectsRepository';
+import { IRepositoryFactory } from '../../../common/interfaces/IRepositoryFactory';
+import { IProjectsRepository, IUpdateOrCreateProjectDto } from '../../../domain/projects/IProjectsRepository';
 import { Project } from '../../../domain/projects/model';
-import { ProjectDao } from '../../infrastructure/db/schemas/Project';
+import { projectsDataStoreFactory } from './projectsDataStore';
+import { projectsRemoteStoreFactory } from './projectsRemoteStore';
 
-interface IProjectsRepositoryFactory {
-  init(): IProjectsRepository;
-}
+const projectsDataStore = projectsDataStoreFactory.init();
+const projectsRemoteStore = projectsRemoteStoreFactory.init();
 
 const projectsStore: IProjectsRepository = {
-  async increaseProjectCounter(increaseCounterDto: IUpdateProjectWhere): Promise<Project> {
-    if (!increaseCounterDto.id && !increaseCounterDto.projectId) {
+  async updateOrCreateProject(updateOrCreateProjectDto: IUpdateOrCreateProjectDto): Promise<Project> {
+    if (!updateOrCreateProjectDto.id && !updateOrCreateProjectDto.projectId) {
       throw new Error('Add id or or projectId to update project.');
     }
-    const res = await ProjectDao.upsert({
-      projectId: 1,
-      counter: Sequelize.literal('"projects"."counter"+1'),
-    }, {
-      returning: true,
-      validate: true,
-      ...(increaseCounterDto.lock != null && { lock: increaseCounterDto.lock }),
-      ...(increaseCounterDto.transaction != null && { transaction: increaseCounterDto.transaction }),
+    const repo = await projectsRemoteStore.fetchProject(updateOrCreateProjectDto.user, updateOrCreateProjectDto.repository);
+    return projectsDataStore.updateOrCreateProject({
+      projectId: repo.fullName,
+      user: repo.ownerName,
+      repository: repo.projectName,
     });
-    if (!res || res == 0) {
-      throw new Error('The project did not find.');
-    }
-    if (!Array.isArray(res) || res.length < 2 || !Array.isArray(res[1]) || res[1].length <= 0) {
-      throw new Error('The project did not find.');
-    }
-    return res[1][0].toProject();
   },
 };
 
-export const projectsRepositoryFactory: IProjectsRepositoryFactory = {
+export const projectsRepositoryFactory: IRepositoryFactory<IProjectsRepository> = {
   init(): IProjectsRepository {
     return Object.create(projectsStore);
   },
