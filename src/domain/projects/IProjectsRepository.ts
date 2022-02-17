@@ -1,13 +1,15 @@
 import { LockEnum, Transactional } from '../../data/infrastructure/db';
 import { Project } from './model';
 
-export interface IUpdateProjectWhere {
+export interface IUpdateOrCreateProjectDto {
   id?: number,
   projectId?: string,
+  user: string,
+  repository: string,
   transaction?: Transactional,
   lock?: LockEnum,
 }
 
 export interface IProjectsRepository{
-  increaseProjectCounter(increaseCounterDto: IUpdateProjectWhere): Promise<Project>
+  updateOrCreateProject(updateOrCreateProjectDto: IUpdateOrCreateProjectDto): Promise<Project>
 }

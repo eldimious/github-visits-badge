@@ -1,0 +1,28 @@
+version: '3.9'
+services:
+  github-visits-badge:
+    build:
+      context: .
+    container_name: github-visits-badge
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      - DATABASE_URL=mongodb://db:27017/nodejsshowcase
+    depends_on:
+      - postgres
+    volumes:
+      - .:/home/nodejs/src
+  postgres:
+    image: postgres:12.5
+    ports:
+      - "5432:5432"
+    restart: always
+    environment:
+      POSTGRES_DB: users-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres:/var/lib/postgresql/data
+volumes:
+  postgres: ~

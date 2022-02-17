@@ -1,14 +1,15 @@
 {
   "name": "github-visits-badge",
   "version": "1.0.0",
+  "private": true,
   "description": "API to create  badges for GitHub",
   "main": "dist/server.js",
   "scripts": {
     "coverage": "nyc --reporter html --reporter text mocha test --recursive",
-    "debug": "nodemon src/server.js",
+    "debug": "cp .env.local .env && nodemon src/server.ts",
     "start": "node dist/server.js",
     "build": "tsc",
-    "dev": "npx ts-node src/server.ts",
+    "dev": "cp .env.local .env && npx ts-node src/server.ts",
     "test": "mocha tests --recursive --timeout 15000 --exit"
   },
   "repository": {
@@ -22,6 +23,9 @@
   },
   "homepage": "https://github.com/eldimious/github-visits-badge#readme",
   "dependencies": {
+    "@dimosbotsaris/express-async-handler": "^1.1.1",
+    "@dimosbotsaris/express-error-handler": "^1.0.3",
+    "axios": "^0.26.0",
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
     "cors": "^2.8.5",
@@ -44,6 +48,7 @@
     "@types/body-parser": "^1.19.2",
     "@types/chai": "^4.3.0",
     "@types/compression": "^1.7.2",
+    "@types/cors": "^2.8.12",
     "@types/dotenv": "^8.2.0",
     "@types/expect": "^24.3.0",
     "@types/express": "^4.17.13",
