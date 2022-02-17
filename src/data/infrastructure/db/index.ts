@@ -7,17 +7,22 @@ import {
   LOCK,
 } from 'sequelize/types';
 import { ProjectDao } from './schemas/Project';
+import {
+  PRODUCTION_ENV,
+} from '../../../common/constants';
 
 const defaultOptions: SequelizeOptions = {
   dialect: 'postgres',
   logging: true,
   timezone: '+00:00',
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false,
-    },
-  },
+  dialectOptions: process.env.NODE_ENV === PRODUCTION_ENV
+    ? {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    }
+    : undefined,
   define: {
     freezeTableName: true,
   },
@@ -26,15 +31,19 @@ const defaultOptions: SequelizeOptions = {
 export class Database {
   private sequelize: Sequelize;
 
-  runTransaction;
+  // runTransaction;
 
   constructor(dbConnectionString: string) {
+    console.log('dbConnectionString', dbConnectionString)
     this.sequelize = new Sequelize(dbConnectionString, defaultOptions);
+    console.log('this.sequelize', this.sequelize)
     this.sequelize.addModels([ProjectDao]);
-    this.runTransaction = this.sequelize.transaction.bind(this.sequelize);
+    console.log('this.sequelize11', this.sequelize)
+    // this.runTransaction = this.sequelize.transaction.bind(this.sequelize);
   }
 
   async connect(): Promise<void> {
+    console.log('this.sequelize11111', this.sequelize)
     await this.sequelize.authenticate();
   }
 

@@ -19,16 +19,14 @@ const app = appServerFactory.init({
   badgesService,
 } as IServices);
 
-let server: any;
-
 (async () => {
   try {
     await db.connect();
-    server = app.listen(config.server.httpPort, () => {
+    app.listen(config.server.httpPort, () => {
       logging.info(`Listening on *:${config.server.httpPort}`);
     });
   } catch (error) {
     await db.close();
-    await server.close();
+    // await server.close();
   }
 })();

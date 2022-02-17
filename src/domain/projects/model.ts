@@ -7,7 +7,7 @@ export class Project {
 
   readonly user: string;
 
-  readonly narepositoryme: string;
+  readonly repository: string;
 
   readonly createdAt: Date;
 
