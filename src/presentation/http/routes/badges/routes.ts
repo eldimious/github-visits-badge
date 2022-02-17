@@ -11,7 +11,15 @@ export const badgesRoutesFactory: IRouteFactory = {
     router.get(
       '/visits/:user/:repo',
       asyncWrapper(async (req: Request, res: Response) => {
-        const badge = await services.badgesService.getRepoVisitsBadge(req.params.user, req.params.repo);
+        const badge = await services.badgesService.getRepoVisitsBadge({
+          user: req.params.user,
+          repository: req.params.repo,
+          color: req.query.color as string,
+          style: req.query.style as string,
+          logo: req.query.logo as string,
+          labelColor: req.query.labelColor as string,
+          label: req.query.label as string,
+        });
         return res.redirect(badge.iconUrl);
       }),
     );

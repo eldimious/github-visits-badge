@@ -10,9 +10,6 @@ const projectsRemoteStore = projectsRemoteStoreFactory.init();
 
 const projectsStore: IProjectsRepository = {
   async updateOrCreateProject(updateOrCreateProjectDto: IUpdateOrCreateProjectDto): Promise<Project> {
-    if (!updateOrCreateProjectDto.id && !updateOrCreateProjectDto.projectId) {
-      throw new Error('Add id or or projectId to update project.');
-    }
     const repo = await projectsRemoteStore.fetchProject(updateOrCreateProjectDto.user, updateOrCreateProjectDto.repository);
     return projectsDataStore.updateOrCreateProject({
       projectId: repo.fullName,

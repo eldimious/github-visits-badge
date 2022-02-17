@@ -24,7 +24,7 @@ export const appServerFactory = {
   init(services: IServices): http.Server {
     app.use(express.static(path.join(__dirname, 'public')));
     app.use('/badges', badgesRoutesFactory.init(services));
-    app.use(errorHandler);
+    app.use(errorHandler({ trace: true }));
     return http.createServer(app);
   },
 };
