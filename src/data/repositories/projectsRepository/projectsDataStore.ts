@@ -25,12 +25,6 @@ const projectsDataStore: IProjectsDataStore = {
       ...(updateOrCreateProjectDto.lock != null && { lock: updateOrCreateProjectDto.lock }),
       ...(updateOrCreateProjectDto.transaction != null && { transaction: updateOrCreateProjectDto.transaction }),
     });
-    // if (!res || res == 0) {
-    //   throw new Error('The project did not find.');
-    // }
-    // if (!Array.isArray(res) || res.length < 2 || !Array.isArray(res[1]) || res[1].length <= 0) {
-    //   throw new Error('The project did not find.');
-    // }
     return res[0].toProject();
   },
 };

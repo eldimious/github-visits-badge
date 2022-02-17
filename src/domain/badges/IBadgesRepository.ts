@@ -1,5 +1,15 @@
 import { Badge } from './model';
 
+export interface IVisitsBadgeDto {
+  badgeId: string,
+  badge: number,
+  color?: string,
+  style?: string,
+  logo?: string,
+  labelColor?: string,
+  label?: string
+}
+
 export interface IBadgesRepository{
-  getVisitsUrl(badgeId: string, badge: number, color?: string): Badge
+  getVisitsBadgeUrl(visitsBadgeDto: IVisitsBadgeDto): Badge
 }

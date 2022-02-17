@@ -22,11 +22,11 @@ const app = appServerFactory.init({
 (async () => {
   try {
     await db.connect();
+    db.sync();
     app.listen(config.server.httpPort, () => {
       logging.info(`Listening on *:${config.server.httpPort}`);
     });
   } catch (error) {
     await db.close();
-    // await server.close();
   }
 })();

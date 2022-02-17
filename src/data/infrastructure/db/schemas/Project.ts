@@ -13,6 +13,7 @@ import {
   CreatedAt,
   UpdatedAt,
   Model,
+  Default,
 } from 'sequelize-typescript';
 import { Project } from '../../../../domain/projects/model';
 
@@ -28,6 +29,7 @@ export interface IProject {
 
 @Table({
   timestamps: true,
+  tableName: 'projects',
 })
 export class ProjectDao extends Model {
   @PrimaryKey
@@ -43,7 +45,8 @@ export class ProjectDao extends Model {
 
   @AllowNull(false)
   @NotEmpty
-  @Column(DataType.NUMBER)
+  @Default(0)
+  @Column(DataType.INTEGER)
     counter!: number;
 
   @AllowNull(false)
