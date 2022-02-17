@@ -1,6 +1,7 @@
 {
   "name": "github-visits-badge",
   "version": "1.0.0",
+  "private": true,
   "description": "API to create  badges for GitHub",
   "main": "dist/server.js",
   "scripts": {
@@ -22,6 +23,8 @@
   },
   "homepage": "https://github.com/eldimious/github-visits-badge#readme",
   "dependencies": {
+    "@dimosbotsaris/express-async-handler": "^1.1.1",
+    "@dimosbotsaris/express-error-handler": "^1.0.3",
     "axios": "^0.26.0",
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
