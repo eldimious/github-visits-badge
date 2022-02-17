@@ -1,17 +1,51 @@
-import throwHttpErrors from 'throw-http-errors';
+import winston from 'winston';
+import expressWinston from 'express-winston';
+import {
+  PRODUCTION_ENV,
+  VERBOSE_LOGGING_LVL,
+  INFO_LOGGING_LVL,
+} from '../constants';
 
-const isCustomError = (error: any): boolean => {
-  if (Object.keys(throwHttpErrors).includes(error.name) || (error.status && Object.keys(throwHttpErrors).includes(error.status.toString()))) {
-    return true;
-  }
-  return false;
+const getTransports = () => {
+  const transports = [
+    new winston.transports.Console(),
+  ];
+  return transports;
 };
 
-// eslint-disable-next-line prefer-object-spread
-export default Object.assign(
-  {},
-  throwHttpErrors,
-  {
-    isCustomError,
-  },
+const getFormat = () => winston.format.combine(
+  winston.format.colorize(),
+  winston.format.json(),
 );
+
+const requestLogger = expressWinston.logger({
+  transports: getTransports(),
+  format: getFormat(),
+  colorize: true,
+  expressFormat: true,
+  meta: true,
+});
+
+const errorLogger = expressWinston.errorLogger({
+  transports: getTransports(),
+  format: getFormat(),
+});
+
+const logger = winston.createLogger({
+  level: process.env.NODE_ENV !== PRODUCTION_ENV ? VERBOSE_LOGGING_LVL : INFO_LOGGING_LVL,
+  format: getFormat(),
+  transports: getTransports(),
+});
+
+export = {
+  raw: winston,
+  requestLogger,
+  errorLogger,
+  error: logger.error.bind(logger),
+  warn: logger.warn.bind(logger),
+  info: logger.info.bind(logger),
+  log: logger.log.bind(logger),
+  verbose: logger.verbose.bind(logger),
+  debug: logger.debug.bind(logger),
+  silly: logger.silly.bind(logger),
+};
