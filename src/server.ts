@@ -14,7 +14,7 @@ const badgesRepository = badgesRepositoryFactory.init();
 const badgesService = badgesServiceFactory.init({
   projectsRepository,
   badgesRepository,
-} as IRepositories);
+} as IRepositories, db.inTransaction);
 const app = appServerFactory.init({
   badgesService,
 } as IServices);

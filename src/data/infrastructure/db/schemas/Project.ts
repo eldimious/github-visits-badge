@@ -45,7 +45,7 @@ export class ProjectDao extends Model {
 
   @AllowNull(false)
   @NotEmpty
-  @Default(0)
+  @Default(1)
   @Column(DataType.INTEGER)
     counter!: number;
 
