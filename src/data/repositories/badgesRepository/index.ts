@@ -1,5 +1,6 @@
 import { IBadgesRepository, IVisitsBadgeDto } from '../../../domain/badges/IBadgesRepository';
 import { Badge } from '../../../domain/badges/model';
+import '../../../common/utils/string';
 
 interface IBadgesRepositoryFactory {
   init(): IBadgesRepository;
@@ -16,9 +17,10 @@ const badgesRepository: IBadgesRepository = {
       style: 'flat',
       labelColor: 'gray',
     });
-    Object.keys(rest)
+    const queryParams = Object.keys(rest)
       .reduce((accumulator: string, current: string, currentIndex: number) => `${accumulator}${current}=${rest[currentIndex]}&`, '?');
-    return `https://img.shields.io/badge/Visits-${badge}-${rest.color}?style=${rest.style}`.toBadge(badgeId);
+    const iconUrl = `https://img.shields.io/badge/Visits-${badge}-${rest.color}${queryParams}`;
+    return iconUrl.toBadge(badgeId);
   },
 };
 
