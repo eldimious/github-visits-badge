@@ -137,6 +137,25 @@ module "private_ecs_tasks_sg" {
   egress_protocol          = "-1"
 }
 
+module "private_database_sg" {
+  source                   = "../common/modules/security"
+  create_vpc               = var.create_vpc
+  create_sg                = true
+  sg_name                  = "private-database-security-group"
+  description              = "Controls access to the private lambdas (not internet facing)"
+  rule_ingress_description = "allow inbound access only from resources in VPC"
+  rule_egress_description  = "allow all outbound"
+  vpc_id                   = module.networking.vpc_id
+  ingress_cidr_blocks      = [var.cidr_block]
+  ingress_from_port        = 0
+  ingress_to_port          = 0
+  ingress_protocol         = "-1"
+  egress_cidr_blocks       = ["0.0.0.0/0"]
+  egress_from_port         = 0
+  egress_to_port           = 0
+  egress_protocol          = "-1"
+}
+
 module "public_alb" {
   source             = "../common/modules/alb"
   create_alb         = var.create_alb
@@ -173,9 +192,22 @@ resource "aws_service_discovery_private_dns_namespace" "segment" {
 }
 
 ################################################################################
-# BOOKS API ECS Service
+# Database Configuration
 ################################################################################
-module "ecs_books_api_fargate" {
+module "badges_database" {
+  source                = "../common/modules/database"
+  database_identifier   = "badges-database"
+  database_username     = var.badges_database_username
+  database_password     = var.badges_database_password
+  subnet_ids            = module.networking.private_subnet_ids
+  security_group_ids    = [module.private_database_sg.security_group_id]
+  monitoring_role_name  = "BadgesDatabaseMonitoringRole"
+}
+
+################################################################################
+# BADGES API ECS Service
+################################################################################
+module "ecs_badges_api_fargate" {
   source                                  = "../common/modules/ecs"
   aws_region                              = var.aws_region
   vpc_id                                  = module.networking.vpc_id
@@ -192,194 +224,59 @@ module "ecs_books_api_fargate" {
   fargate_cpu                             = var.fargate_cpu
   fargate_memory                          = var.fargate_memory
   health_check_grace_period_seconds       = var.health_check_grace_period_seconds
-  service_name                            = var.books_api_name
-  service_image                           = var.books_api_image
-  service_aws_logs_group                  = var.books_api_aws_logs_group
-  service_port                            = var.books_api_port
-  service_desired_count                   = var.books_api_desired_count
-  service_max_count                       = var.books_api_max_count
-  service_task_family                     = var.books_api_task_family
-  service_enviroment_variables            = []
-  service_health_check_path               = var.books_api_health_check_path
-  network_mode                            = var.books_api_network_mode
-  task_compatibilities                    = var.books_api_task_compatibilities
-  launch_type                             = var.books_api_launch_type
-  alb_listener                            = module.public_alb.alb_listener
-  has_alb                                 = true
-  alb_listener_tg                         = var.books_api_tg
-  alb_listener_port                       = 80
-  alb_listener_protocol                   = "HTTP"
-  alb_listener_target_type                = "ip"
-  alb_listener_arn                        = module.public_alb.alb_listener_http_tcp_arn
-  alb_listener_rule_priority              = 1
-  alb_listener_rule_type                  = "forward"
-  alb_service_tg_paths                    = var.books_api_tg_paths
-  enable_autoscaling                      = true
-  autoscaling_name                        = "${var.books_api_name}_scaling"
-  autoscaling_settings = {
-    max_capacity       = 4
-    min_capacity       = 2
-    target_cpu_value   = 60
-    scale_in_cooldown  = 60
-    scale_out_cooldown = 900
-  }
-}
-
-################################################################################
-# PROMOTIONS API ECS Service
-################################################################################
-module "ecs_promotions_api_fargate" {
-  source                                  = "../common/modules/ecs"
-  aws_region                              = var.aws_region
-  vpc_id                                  = module.networking.vpc_id
-  cluster_id                              = module.ecs_cluster.cluster_id
-  cluster_name                            = module.ecs_cluster.cluster_name
-  has_discovery                           = true
-  dns_namespace_id                        = aws_service_discovery_private_dns_namespace.segment.id
-  service_security_groups_ids             = [module.ecs_tasks_sg.security_group_id]
-  subnet_ids                              = module.networking.private_subnet_ids
-  assign_public_ip                        = false
-  iam_role_ecs_task_execution_role        = aws_iam_role.ecs_task_execution_role
-  iam_role_policy_ecs_task_execution_role = aws_iam_role_policy_attachment.ecs_task_execution_role
-  logs_retention_in_days                  = 30
-  fargate_cpu                             = var.fargate_cpu
-  fargate_memory                          = var.fargate_memory
-  health_check_grace_period_seconds       = var.health_check_grace_period_seconds
-  service_name                            = var.promotions_api_name
-  service_image                           = var.promotions_api_image
-  service_aws_logs_group                  = var.promotions_api_aws_logs_group
-  service_port                            = var.promotions_api_port
-  service_desired_count                   = var.promotions_api_desired_count
-  service_max_count                       = var.promotions_api_max_count
-  service_task_family                     = var.promotions_api_task_family
-  service_enviroment_variables            = []
-  service_health_check_path               = var.promotions_api_health_check_path
-  network_mode                            = var.promotions_api_network_mode
-  task_compatibilities                    = var.promotions_api_task_compatibilities
-  launch_type                             = var.promotions_api_launch_type
-  alb_listener                            = module.public_alb.alb_listener
-  has_alb                                 = true
-  alb_listener_tg                         = var.promotions_api_tg
-  alb_listener_port                       = 80
-  alb_listener_protocol                   = "HTTP"
-  alb_listener_target_type                = "ip"
-  alb_listener_arn                        = module.public_alb.alb_listener_http_tcp_arn
-  alb_listener_rule_priority              = 3
-  alb_listener_rule_type                  = "forward"
-  alb_service_tg_paths                    = var.promotions_api_tg_paths
-  enable_autoscaling                      = true
-  autoscaling_name                        = "${var.promotions_api_name}_scaling"
-  autoscaling_settings = {
-    max_capacity       = 4
-    min_capacity       = 2
-    target_cpu_value   = 60
-    scale_in_cooldown  = 60
-    scale_out_cooldown = 900
-  }
-}
-
-################################################################################
-# RECOMMENDATION API ECS Service
-################################################################################
-module "ecs_recommendations_api_fargate" {
-  source                                  = "../common/modules/ecs"
-  aws_region                              = var.aws_region
-  vpc_id                                  = module.networking.vpc_id
-  cluster_id                              = module.ecs_cluster.cluster_id
-  cluster_name                            = module.ecs_cluster.cluster_name
-  has_discovery                           = true
-  dns_namespace_id                        = aws_service_discovery_private_dns_namespace.segment.id
-  service_security_groups_ids             = [module.private_ecs_tasks_sg.security_group_id]
-  subnet_ids                              = module.networking.private_subnet_ids
-  assign_public_ip                        = false
-  iam_role_ecs_task_execution_role        = aws_iam_role.ecs_task_execution_role
-  iam_role_policy_ecs_task_execution_role = aws_iam_role_policy_attachment.ecs_task_execution_role
-  logs_retention_in_days                  = 30
-  fargate_cpu                             = var.fargate_cpu
-  fargate_memory                          = var.fargate_memory
-  health_check_grace_period_seconds       = var.health_check_grace_period_seconds
-  service_name                            = var.recommendations_api_name
-  service_image                           = var.recommendations_api_image
-  service_aws_logs_group                  = var.recommendations_api_aws_logs_group
-  service_port                            = var.recommendations_api_port
-  service_desired_count                   = var.recommendations_api_desired_count
-  service_max_count                       = var.recommendations_api_max_count
-  service_task_family                     = var.recommendations_api_task_family
-  service_enviroment_variables            = []
-  service_health_check_path               = null
-  network_mode                            = var.recommendations_api_network_mode
-  task_compatibilities                    = var.recommendations_api_task_compatibilities
-  launch_type                             = var.recommendations_api_launch_type
-  alb_listener                            = module.public_alb.alb_listener
-  has_alb                                 = false
-  alb_listener_tg                         = null
-  alb_listener_port                       = null
-  alb_listener_protocol                   = null
-  alb_listener_target_type                = null
-  alb_listener_arn                        = null
-  alb_listener_rule_priority              = null
-  alb_listener_rule_type                  = "forward"
-  alb_service_tg_paths                    = []
-  enable_autoscaling                      = true
-  autoscaling_name                        = "${var.recommendations_api_name}_scaling"
-  autoscaling_settings = {
-    max_capacity       = 4
-    min_capacity       = 2
-    target_cpu_value   = 60
-    scale_in_cooldown  = 60
-    scale_out_cooldown = 900
-  }
-}
-
-################################################################################
-# USERS API ECS Service
-################################################################################
-module "ecs_users_api_fargate" {
-  source                                  = "../common/modules/ecs"
-  aws_region                              = var.aws_region
-  vpc_id                                  = module.networking.vpc_id
-  cluster_id                              = module.ecs_cluster.cluster_id
-  cluster_name                            = module.ecs_cluster.cluster_name
-  has_discovery                           = true
-  dns_namespace_id                        = aws_service_discovery_private_dns_namespace.segment.id
-  service_security_groups_ids             = [module.ecs_tasks_sg.security_group_id]
-  subnet_ids                              = module.networking.private_subnet_ids
-  assign_public_ip                        = false
-  iam_role_ecs_task_execution_role        = aws_iam_role.ecs_task_execution_role
-  iam_role_policy_ecs_task_execution_role = aws_iam_role_policy_attachment.ecs_task_execution_role
-  logs_retention_in_days                  = 30
-  fargate_cpu                             = var.fargate_cpu
-  fargate_memory                          = var.fargate_memory
-  health_check_grace_period_seconds       = var.health_check_grace_period_seconds
-  service_name                            = var.users_api_name
-  service_image                           = var.users_api_image
-  service_aws_logs_group                  = var.users_api_aws_logs_group
-  service_port                            = var.users_api_port
-  service_desired_count                   = var.users_api_desired_count
-  service_max_count                       = var.users_api_max_count
-  service_task_family                     = var.users_api_task_family
+  service_name                            = var.badges_api_name
+  service_image                           = var.badges_api_image
+  service_aws_logs_group                  = var.badges_api_aws_logs_group
+  service_port                            = var.badges_api_port
+  service_desired_count                   = var.badges_api_desired_count
+  service_max_count                       = var.badges_api_max_count
+  service_task_family                     = var.badges_api_task_family
   service_enviroment_variables = [
     {
-      "name" : "RECOMMENDATIONS_SERVICE_URL",
-      "value" : "http://${module.ecs_recommendations_api_fargate.aws_service_discovery_service_name}.${aws_service_discovery_private_dns_namespace.segment.name}:${var.recommendations_api_port}"
+      "name" : "POSTGRES_USER",
+      "value" : module.private_database_sg.db_instance_username,
+    },
+    {
+      "name" : "POSTGRES_PASSWORD",
+      "value" : module.private_database_sg.db_master_password,
+    },
+    {
+      "name" : "POSTGRES_HOST",
+      "value" : module.private_database_sg.db_instance_address,
+    },
+    {
+      "name" : "POSTGRES_DB",
+      "value" : module.private_database_sg.db_instance_name,
+    },
+    {
+      "name" : "POSTGRES_PORT",
+      "value" : module.private_database_sg.db_instance_port,
+    },
+    {
+      "name" : "GITHUB_ID",
+      "value" : var.github_id,
+    },
+    {
+      "name" : "GITHUB_TOKEN",
+      "value" : var.github_token,
     }
   ]
-  service_health_check_path               = var.users_api_health_check_path
-  network_mode                            = var.users_api_network_mode
-  task_compatibilities                    = var.users_api_task_compatibilities
-  launch_type                             = var.users_api_launch_type
+  service_health_check_path               = var.badges_api_health_check_path
+  network_mode                            = var.badges_api_network_mode
+  task_compatibilities                    = var.badges_api_task_compatibilities
+  launch_type                             = var.badges_api_launch_type
   alb_listener                            = module.public_alb.alb_listener
   has_alb                                 = true
-  alb_listener_tg                         = var.users_api_tg
+  alb_listener_tg                         = var.badges_api_tg
   alb_listener_port                       = 80
   alb_listener_protocol                   = "HTTP"
   alb_listener_target_type                = "ip"
   alb_listener_arn                        = module.public_alb.alb_listener_http_tcp_arn
   alb_listener_rule_priority              = 2
   alb_listener_rule_type                  = "forward"
-  alb_service_tg_paths                    = var.users_api_tg_paths
+  alb_service_tg_paths                    = var.badges_api_tg_paths
   enable_autoscaling                      = true
-  autoscaling_name                        = "${var.users_api_name}_scaling"
+  autoscaling_name                        = "${var.badges_api_name}_scaling"
   autoscaling_settings = {
     max_capacity       = 4
     min_capacity       = 2
