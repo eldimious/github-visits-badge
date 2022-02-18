@@ -28,7 +28,6 @@ export const badgesServiceFactory: IServiceFactory<IBadgesService> = {
           lock: t.LOCK.UPDATE,
           transaction: t,
         });
-        console.log('project', project)
         if (!project) {
           return repositories.projectsRepository.createProject({
             projectId,
@@ -44,7 +43,6 @@ export const badgesServiceFactory: IServiceFactory<IBadgesService> = {
           ...repoVisitsBadgeDto,
         });
       });
-      console.log('result', result)
       return repositories.badgesRepository.getVisitsBadgeUrl({
         badgeId: result.projectId,
         badge: result.counter,

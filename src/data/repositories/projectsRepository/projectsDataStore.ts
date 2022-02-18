@@ -54,7 +54,6 @@ const projectsDataStore: IProjectsDataStore = {
       ...(updateOrCreateProjectDto.lock != null && { lock: updateOrCreateProjectDto.lock }),
       ...(updateOrCreateProjectDto.transaction != null && { transaction: updateOrCreateProjectDto.transaction }),
     });
-    console.log('xxxxx111', res[1][0])
     return res[1][0].toProject();
   },
 };
