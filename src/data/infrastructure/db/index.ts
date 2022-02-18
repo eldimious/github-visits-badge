@@ -31,12 +31,12 @@ const defaultOptions: SequelizeOptions = {
 export class Database {
   private sequelize: Sequelize;
 
-  runTransaction;
+  inTransaction: any;
 
   constructor(dbConnectionString: string) {
     this.sequelize = new Sequelize(dbConnectionString, defaultOptions);
     this.sequelize.addModels([ProjectDao]);
-    this.runTransaction = this.sequelize.transaction.bind(this.sequelize);
+    this.inTransaction = this.sequelize.transaction.bind(this.sequelize);
   }
 
   async connect(): Promise<void> {
