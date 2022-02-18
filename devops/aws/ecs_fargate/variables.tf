@@ -12,7 +12,7 @@ variable "aws_region" {
 ################################################################################
 variable "vpc_name" {
   description = "The name of the VPC. Other names will result from this."
-  default     = "ms-vpc"
+  default     = "badges-api-vpc"
 }
 
 variable "create_vpc" {
@@ -83,12 +83,12 @@ variable "create_alb" {
 ################################################################################
 variable "project" {
   description = "Project name"
-  default     = "ecs_fargate_ms"
+  default     = "badges_fargate"
 }
 
 variable "environment" {
   description = "Indicate the environment"
-  default     = "dec"
+  default     = "prod"
 }
 
 ################################################################################
@@ -106,12 +106,12 @@ variable "az_count" {
 
 variable "fargate_cpu" {
   description = "Fargate instance CPU units to provision (1 vCPU = 1024 CPU units)"
-  default     = "256"
+  default     = "512"
 }
 
 variable "fargate_memory" {
   description = "Fargate instance memory to provision (in MiB)"
-  default     = "512"
+  default     = "1024"
 }
 
 variable "health_check_grace_period_seconds" {
@@ -125,245 +125,65 @@ variable "network_mode" {
 }
 
 ################################################################################
-# API Books Service Configuration
+# BADGES badges Service Configuration
 ################################################################################
-variable "books_api_tg" {
+variable "badges_api_tg" {
   description = "Defines service tg"
-  default     = "books-api-tg"
+  default     = "badges-api-tg"
 }
 
-variable "books_api_tg_paths" {
-  default = ["/books", "/books/*"]
+variable "badges_api_tg_paths" {
+  default = ["/badges", "/badges/*"]
 }
 
-variable "books_api_name" {
+variable "badges_api_name" {
   description = "Defines service name"
-  default     = "books_api"
+  default     = "badges_api"
 }
 
-variable "books_api_image" {
+variable "badges_api_image" {
   description = "Defines service image"
-  default     = "eldimious/books:latest"
+  default     = "eldimious/github-visits-badge:latest"
 }
 
-variable "books_api_aws_logs_group" {
+variable "badges_api_aws_logs_group" {
   description = "Defines logs group"
-  default     = "/ecs/books_api"
+  default     = "/ecs/badges_api"
 }
 
-variable "books_api_task_family" {
+variable "badges_api_task_family" {
   description = "Defines logs group"
-  default     = "books_api_task"
+  default     = "badges_api_task"
 }
 
-variable "books_api_port" {
-  description = "Port exposed by the books image"
-  default     = 3000
-}
-
-variable "books_api_desired_count" {
-  description = "Number of books docker containers to run"
-  default     = 2
-}
-
-variable "books_api_max_count" {
-  description = "Max number of books docker containers to run"
-  default     = 4
-}
-
-variable "books_api_health_check_path" {
-  default = "/books/health-check"
-}
-
-variable "books_api_network_mode" {
-  default = "awsvpc"
-}
-
-variable "books_api_task_compatibilities" {
-  default = ["FARGATE"]
-}
-
-variable "books_api_launch_type" {
-  default = "FARGATE"
-}
-
-################################################################################
-# API Users Service Configuration
-################################################################################
-variable "users_api_tg" {
-  description = "Defines service tg"
-  default     = "users-api-tg"
-}
-
-variable "users_api_tg_paths" {
-  default = ["/users", "/users/*"]
-}
-
-variable "users_api_name" {
-  description = "Defines service name"
-  default     = "users_api"
-}
-
-variable "users_api_image" {
-  description = "Defines service image"
-  default     = "eldimious/users:latest"
-}
-
-variable "users_api_aws_logs_group" {
-  description = "Defines logs group"
-  default     = "/ecs/users_api"
-}
-
-variable "users_api_task_family" {
-  description = "Defines logs group"
-  default     = "users_api_task"
-}
-
-variable "users_api_port" {
-  description = "Port exposed by the users image"
-  default     = 3000
-}
-
-variable "users_api_desired_count" {
-  description = "Number of users docker containers to run"
-  default     = 2
-}
-
-variable "users_api_max_count" {
-  description = "Max number of users docker containers to run"
-  default     = 4
-}
-
-variable "users_api_health_check_path" {
-  default = "/users/health-check"
-}
-
-variable "users_api_network_mode" {
-  default = "awsvpc"
-}
-
-variable "users_api_task_compatibilities" {
-  default = ["FARGATE"]
-}
-
-variable "users_api_launch_type" {
-  default = "FARGATE"
-}
-
-################################################################################
-# API Promotions Service Configuration
-################################################################################
-variable "promotions_api_tg" {
-  description = "Defines service tg"
-  default     = "promotions-api-tg"
-}
-
-variable "promotions_api_tg_paths" {
-  default = ["/promotions", "/promotions/*"]
-}
-
-variable "promotions_api_name" {
-  description = "Defines service name"
-  default     = "promotions_api"
-}
-
-variable "promotions_api_image" {
-  description = "Defines service image"
-  default     = "eldimious/promotions:latest"
-}
-
-variable "promotions_api_aws_logs_group" {
-  description = "Defines logs group"
-  default     = "/ecs/promotions_api"
-}
-
-variable "promotions_api_task_family" {
-  description = "Defines logs group"
-  default     = "promotions_api_task"
-}
-
-variable "promotions_api_port" {
-  description = "Port exposed by the users image"
+variable "badges_api_port" {
+  description = "Port exposed by the badges image"
   default     = 8080
 }
 
-variable "promotions_api_desired_count" {
-  description = "Number of users docker containers to run"
+variable "badges_api_desired_count" {
+  description = "Number of badges docker containers to run"
   default     = 2
 }
 
-variable "promotions_api_max_count" {
-  description = "Max number of users docker containers to run"
+variable "badges_api_max_count" {
+  description = "Max number of badges docker containers to run"
   default     = 4
 }
 
-variable "promotions_api_health_check_path" {
-  default = "/promotions/"
+variable "badges_api_health_check_path" {
+  default = "/badges/health-check"
 }
 
-variable "promotions_api_network_mode" {
+variable "badges_api_network_mode" {
   default = "awsvpc"
 }
 
-variable "promotions_api_task_compatibilities" {
+variable "badges_api_task_compatibilities" {
   default = ["FARGATE"]
 }
 
-variable "promotions_api_launch_type" {
-  default = "FARGATE"
-}
-
-################################################################################
-# API Recommendations Service Configuration
-################################################################################
-variable "recommendations_api_name" {
-  description = "Defines service name"
-  default     = "recommendations_api"
-}
-
-variable "recommendations_api_image" {
-  description = "Defines service image"
-  default     = "eldimious/recommendations:latest"
-}
-
-variable "recommendations_api_aws_logs_group" {
-  description = "Defines logs group"
-  default     = "/ecs/recommendations_api"
-}
-
-variable "recommendations_api_task_family" {
-  description = "Defines logs group"
-  default     = "recommendations_api_task"
-}
-
-variable "recommendations_api_port" {
-  description = "Port exposed by the recommendations image"
-  default     = 3000
-}
-
-variable "recommendations_api_desired_count" {
-  description = "Number of recommendations docker containers to run"
-  default     = 2
-}
-
-variable "recommendations_api_max_count" {
-  description = "Max number of recommendations docker containers to run"
-  default     = 4
-}
-
-variable "recommendations_api_health_check_path" {
-  default = "/recommendations/health-check"
-}
-
-variable "recommendations_api_network_mode" {
-  default = "awsvpc"
-}
-
-variable "recommendations_api_task_compatibilities" {
-  default = ["FARGATE"]
-}
-
-variable "recommendations_api_launch_type" {
+variable "badges_api_launch_type" {
   default = "FARGATE"
 }
 
@@ -386,4 +206,36 @@ variable "discovery_ttl" {
 variable "discovery_routing_policy" {
   description = "Defines routing policy"
   default     = "MULTIVALUE"
+}
+
+################################################################################
+# Database Configuration
+################################################################################
+# https://blog.gruntwork.io/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code-1d586955ace1
+# using environment variables
+variable "badges_database_username" {
+  description = "The username for the badges DB master"
+  type        = string
+  sensitive   = true
+}
+
+variable "badges_database_password" {
+  description = "The password for the badges DB master"
+  type        = string
+  sensitive   = true
+}
+
+################################################################################
+# ENVIROMENT VARIABLES Configuration
+################################################################################
+variable "github_id" {
+  description = "The id of github to make requests"
+  type        = string
+  sensitive   = true
+}
+
+variable "github_token" {
+  description = "The token of github to make requests"
+  type        = string
+  sensitive   = true
 }
