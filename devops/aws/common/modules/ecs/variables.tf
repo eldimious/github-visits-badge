@@ -102,6 +102,12 @@ variable "service_task_family" {
 
 variable "service_enviroment_variables" {
   description = "Defines service enviroment variables"
+  default     = []
+}
+
+variable "service_secrets_variables" {
+  description = "Defines service secret variables"
+  default     = []
 }
 
 variable "service_health_check_path" {
