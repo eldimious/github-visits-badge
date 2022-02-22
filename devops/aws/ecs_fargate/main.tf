@@ -192,6 +192,71 @@ resource "aws_service_discovery_private_dns_namespace" "segment" {
 }
 
 ################################################################################
+# Secrets Configuration
+################################################################################
+# https://www.sufle.io/blog/keeping-secrets-as-secret-on-amazon-ecs-using-terraform
+resource "aws_secretsmanager_secret" "badges_database_password_secret" {
+  name = "badges_database_master_password"
+}
+
+resource "aws_secretsmanager_secret_version" "badges_database_password_secret_version" {
+  secret_id     = aws_secretsmanager_secret.badges_database_password_secret.id
+  secret_string = var.badges_database_password
+}
+
+resource "aws_secretsmanager_secret" "badges_database_username_secret" {
+  name = "badges_database_master_username"
+}
+
+resource "aws_secretsmanager_secret_version" "badges_database_username_secret_version" {
+  secret_id     = aws_secretsmanager_secret.badges_database_username_secret.id
+  secret_string = var.badges_database_username
+}
+
+resource "aws_secretsmanager_secret" "github_id_secret" {
+  name = "github_id"
+}
+
+resource "aws_secretsmanager_secret_version" "github_id_secret_version" {
+  secret_id     = aws_secretsmanager_secret.github_id_secret.id
+  secret_string = var.badges_database_username
+}
+
+resource "aws_secretsmanager_secret" "github_token_secret" {
+  name = "github_token"
+}
+
+resource "aws_secretsmanager_secret_version" "github_token_secret_version" {
+  secret_id     = aws_secretsmanager_secret.github_token_secret.id
+  secret_string = var.badges_database_username
+}
+
+resource "aws_iam_role_policy" "password_policy_secretsmanager" {
+  name = "password-policy-secretsmanager"
+  role = aws_iam_role.ecs_task_execution_role.id
+
+  policy = <<-EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": [
+          "secretsmanager:GetSecretValue"
+        ],
+        "Effect": "Allow",
+        "Resource": [
+          "${aws_secretsmanager_secret.badges_database_username_secret.arn}",
+          "${aws_secretsmanager_secret.badges_database_password_secret.arn}",
+          "${aws_secretsmanager_secret.github_id_secret.arn}",
+          "${aws_secretsmanager_secret.github_token_secret.arn}"
+        ]
+      }
+    ]
+  }
+  EOF
+}
+
+################################################################################
 # Database Configuration
 ################################################################################
 module "badges_database" {
@@ -233,32 +298,34 @@ module "ecs_badges_api_fargate" {
   service_task_family                     = var.badges_api_task_family
   service_enviroment_variables = [
     {
-      "name" : "POSTGRES_USER",
-      "value" : module.private_database_sg.db_instance_username,
-    },
-    {
-      "name" : "POSTGRES_PASSWORD",
-      "value" : module.private_database_sg.db_master_password,
-    },
-    {
       "name" : "POSTGRES_HOST",
-      "value" : module.private_database_sg.db_instance_address,
+      "value" : module.badges_database.db_instance_address,
     },
     {
       "name" : "POSTGRES_DB",
-      "value" : module.private_database_sg.db_instance_name,
+      "value" : module.badges_database.db_instance_name,
     },
     {
       "name" : "POSTGRES_PORT",
-      "value" : module.private_database_sg.db_instance_port,
+      "value" : module.badges_database.db_instance_port,
+    }
+  ]
+  service_secrets_variables = [
+    {
+      "name" : "POSTGRES_USER",
+      "valueFrom" : "${aws_secretsmanager_secret.badges_database_username_secret.arn}",
+    },
+    {
+      "name": "POSTGRES_PASSWORD",
+      "valueFrom": "${aws_secretsmanager_secret.badges_database_password_secret.arn}",
     },
     {
       "name" : "GITHUB_ID",
-      "value" : var.github_id,
+      "valueFrom" : "${aws_secretsmanager_secret.github_id_secret.arn}",
     },
     {
       "name" : "GITHUB_TOKEN",
-      "value" : var.github_token,
+      "valueFrom" : "${aws_secretsmanager_secret.github_token_secret.arn}",
     }
   ]
   service_health_check_path               = var.badges_api_health_check_path
